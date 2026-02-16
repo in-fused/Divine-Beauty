@@ -1,0 +1,26 @@
+<%- include('partials/head', { title: `${post.title} | Divine Beauty Blog` }) %>
+<section class="container section narrow">
+  <a href="/#blog">← Back to blog</a>
+  <h1><%= post.title %></h1>
+  <% if (post.image_url) { %><img src="<%= post.image_url %>" alt="<%= post.title %>" /><% } %>
+  <p><%= post.body %></p>
+</section>
+
+<section class="container section narrow">
+  <h2>Comments</h2>
+  <form method="post" action="/posts/<%= post.id %>/comments" class="stack">
+    <label>Name <input name="authorName" required /></label>
+    <label>Comment <textarea rows="3" name="authorComment" required></textarea></label>
+    <button class="btn">Post Comment</button>
+  </form>
+
+  <div class="stack comments">
+    <% comments.forEach((comment) => { %>
+      <article class="card">
+        <h3><%= comment.author_name %></h3>
+        <p><%= comment.author_comment %></p>
+      </article>
+    <% }) %>
+  </div>
+</section>
+<%- include('partials/foot') %>
