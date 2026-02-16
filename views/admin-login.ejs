@@ -1,0 +1,11 @@
+<%- include('partials/head', { title: 'Admin Login | Divine Beauty' }) %>
+<section class="container section narrow">
+  <h1>Admin Login</h1>
+  <% if (error) { %><p class="errors"><%= error %></p><% } %>
+  <form method="post" action="/admin/login" class="stack">
+    <label>Username <input name="username" required /></label>
+    <label>Password <input type="password" name="password" required /></label>
+    <button class="btn" type="submit">Sign in</button>
+  </form>
+</section>
+<%- include('partials/foot') %>
