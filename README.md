@@ -76,6 +76,18 @@ cd deploy
 ```
 This verifies HTTP→HTTPS redirect, HTTPS reachability, and prints TLS certificate details.
 
+### 5) Merge + server sync checklist
+After a GitHub pull request is merged into `main`, update the server checkout before running deployment scripts:
+
+```bash
+git pull origin main
+cd deploy
+LETSENCRYPT_EMAIL=you@example.com ./deploy-live.sh
+./post-deploy-check.sh divinebeautybynina.com
+```
+
+If a personal access token (PAT) was exposed while testing Git remotes or pushes, revoke it and create a new token immediately.
+
 ## iOS-first UX notes
 - Touch-first controls with large tappable targets.
 - Input sizing avoids iOS Safari zoom issues.
