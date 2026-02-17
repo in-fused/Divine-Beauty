@@ -3,11 +3,26 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-  <meta name="theme-color" content="#11090f" />
+  <meta name="theme-color" content="<%= theme.bgEnd %>" />
   <title><%= title %></title>
+  <style>
+    :root {
+      --bg-start: <%= theme.bgStart %>;
+      --bg-end: <%= theme.bgEnd %>;
+      --leaf-tint: <%= theme.leafTint %>;
+      --card: <%= theme.card %>;
+      --card-alt: <%= theme.cardAlt %>;
+      --text: <%= theme.text %>;
+      --muted: <%= theme.muted %>;
+      --accent: <%= theme.accent %>;
+      --accent-2: <%= theme.accent2 %>;
+      --border: <%= theme.border %>;
+      --ok: <%= theme.success %>;
+    }
+  </style>
   <link rel="stylesheet" href="/css/styles.css" />
 </head>
-<body>
+<body class="theme-<%= theme.name %>">
 <header class="hero">
   <nav class="nav container">
     <a class="brand" href="/">Divine Beauty by Nina</a>
