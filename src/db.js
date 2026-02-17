@@ -9,6 +9,7 @@ const dbPath = process.env.DB_PATH || path.join(dataDir, 'divine-beauty.db');
 const db = new Database(dbPath);
 
 db.pragma('journal_mode = WAL');
+db.pragma('foreign_keys = ON');
 
 db.exec(`
 CREATE TABLE IF NOT EXISTS services (
@@ -90,12 +91,44 @@ CREATE TABLE IF NOT EXISTS admin_users (
   created_at TEXT DEFAULT CURRENT_TIMESTAMP
 );
 
+CREATE TABLE IF NOT EXISTS site_settings (
+  setting_key TEXT PRIMARY KEY,
+  setting_value TEXT NOT NULL,
+  updated_at TEXT DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS instagram_queue (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  post_url TEXT UNIQUE NOT NULL,
+  shortcode TEXT,
+  caption_hint TEXT,
+  status TEXT DEFAULT 'queued',
+  created_at TEXT DEFAULT CURRENT_TIMESTAMP,
+  published_at TEXT
+);
+
 CREATE INDEX IF NOT EXISTS idx_slot_start ON availability_slots(start_at);
 CREATE INDEX IF NOT EXISTS idx_customer_phone ON customers(phone);
 CREATE INDEX IF NOT EXISTS idx_customer_email ON customers(email);
 CREATE INDEX IF NOT EXISTS idx_bookings_slot ON bookings(slot_id);
 CREATE INDEX IF NOT EXISTS idx_comments_post ON comments(post_id);
+CREATE INDEX IF NOT EXISTS idx_ig_queue_status ON instagram_queue(status);
 `);
+
+const DEFAULT_THEME = {
+  name: 'sunlit-botanical',
+  bgStart: '#f6fff6',
+  bgEnd: '#e9f9ef',
+  leafTint: '#79b98f',
+  card: '#ffffff',
+  cardAlt: '#f2fff6',
+  text: '#173528',
+  muted: '#4f7b67',
+  accent: '#ff7db4',
+  accent2: '#8fe388',
+  border: '#b8e1c7',
+  success: '#1cbf72'
+};
 
 function seedIfEmpty() {
   const serviceCount = db.prepare('SELECT COUNT(*) as count FROM services').get().count;
@@ -125,8 +158,37 @@ function seedIfEmpty() {
     slotInsert.run(mk(1, 13), mk(1, 15), 'Tomorrow Afternoon Refresh', 1);
     slotInsert.run(mk(2, 11), mk(2, 13), 'Premium Weekend Session', 2);
   }
+
+  const settingCount = db.prepare('SELECT COUNT(*) as count FROM site_settings WHERE setting_key = ?').get('theme').count;
+  if (settingCount === 0) {
+    db.prepare('INSERT INTO site_settings (setting_key, setting_value) VALUES (?, ?)').run('theme', JSON.stringify(DEFAULT_THEME));
+  }
+
+  const galleryCount = db.prepare('SELECT COUNT(*) as count FROM gallery_images').get().count;
+  if (galleryCount === 0) {
+    const placeholders = [
+      ['Instagram Placeholder · Gloss Finish', 'https://www.instagram.com/p/Cv5f0e4rWbM/'],
+      ['Instagram Placeholder · Natural Volume', 'https://www.instagram.com/p/C1mT4VnLs4D/'],
+      ['Instagram Placeholder · Silk Press Result', 'https://www.instagram.com/p/C8q8q0fRb8f/'],
+      ['Instagram Placeholder · Signature Styling', 'https://www.instagram.com/p/C9uE7z7u1GB/']
+    ];
+    const insert = db.prepare('INSERT INTO gallery_images (title, image_url, source) VALUES (?, ?, ?)');
+    const tx = db.transaction((rows) => rows.forEach((row) => insert.run(row[0], row[1], 'instagram')));
+    tx(placeholders);
+  }
+
+  const queueCount = db.prepare('SELECT COUNT(*) as count FROM instagram_queue').get().count;
+  if (queueCount === 0) {
+    const rows = db.prepare("SELECT image_url, title FROM gallery_images WHERE source = 'instagram'").all();
+    const insertQueue = db.prepare('INSERT OR IGNORE INTO instagram_queue (post_url, shortcode, caption_hint, status, published_at) VALUES (?, ?, ?, ?, CURRENT_TIMESTAMP)');
+    rows.forEach((row) => {
+      const match = row.image_url.match(/instagram\.com\/p\/([A-Za-z0-9_-]+)/);
+      insertQueue.run(row.image_url, match ? match[1] : null, row.title || '', 'published');
+    });
+  }
+
 }
 
 seedIfEmpty();
 
-module.exports = db;
+module.exports = { db, DEFAULT_THEME };

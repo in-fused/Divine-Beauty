@@ -26,9 +26,7 @@ cards.forEach((card) => {
     if (!payload.found) return;
 
     const nameEl = form.querySelector('input[name="name"]');
-    const notesEl = form.querySelector('textarea[name="customNotes"]');
-    if (nameEl && !nameEl.value) nameEl.value = payload.customer.name || '';
-    if (notesEl && !notesEl.value && payload.customer.notes) notesEl.value = payload.customer.notes;
+    if (nameEl && !nameEl.value) nameEl.value = payload.profile?.name || '';
   }
 
   phone?.addEventListener('blur', lookup);

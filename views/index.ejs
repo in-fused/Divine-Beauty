@@ -65,7 +65,11 @@
   <div class="gallery-grid">
     <% gallery.forEach((item) => { %>
       <figure class="gallery-item">
-        <img loading="lazy" src="<%= item.image_url %>" alt="<%= item.title || 'Divine Beauty hairstyle result' %>" />
+        <% if (item.source === 'instagram' && /instagram\.com\/p\//.test(item.image_url)) { %>
+          <blockquote class="instagram-media" data-instgrm-permalink="<%= item.image_url %>" data-instgrm-version="14"></blockquote>
+        <% } else { %>
+          <img loading="lazy" src="<%= item.image_url %>" alt="<%= item.title || 'Divine Beauty hairstyle result' %>" />
+        <% } %>
         <figcaption><%= item.title %></figcaption>
       </figure>
     <% }) %>
