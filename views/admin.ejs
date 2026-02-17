@@ -1,0 +1,140 @@
+<%- include('partials/head', { title: 'Admin Dashboard | Divine Beauty' }) %>
+<section class="container section">
+  <div class="admin-top">
+    <h1>Admin Dashboard</h1>
+    <form method="post" action="/admin/logout"><button class="btn-inline">Logout</button></form>
+  </div>
+  <p>Manage openings, content, visuals, and live theme styling from iPhone-friendly controls.</p>
+</section>
+
+<section class="container section">
+  <article class="card">
+    <h2>Website Theme Designer</h2>
+    <p>Switch between preset looks, or write a short prompt like: “bright natural monstera theme with warm pink accents”.</p>
+
+    <div class="admin-theme-grid">
+      <% Object.entries(themePresets).forEach(([name, presetTheme]) => { %>
+        <form method="post" action="/admin/theme/preset" class="theme-chip <%= activeTheme === name ? 'active' : '' %>">
+          <strong><%= name %></strong>
+          <div class="swatches">
+            <i style="background:<%= presetTheme.bgStart %>"></i>
+            <i style="background:<%= presetTheme.leafTint %>"></i>
+            <i style="background:<%= presetTheme.accent %>"></i>
+            <i style="background:<%= presetTheme.accent2 %>"></i>
+          </div>
+          <input type="hidden" name="themeName" value="<%= name %>" />
+          <button class="btn-inline" type="submit">Apply Theme</button>
+        </form>
+      <% }) %>
+    </div>
+
+    <form method="post" action="/admin/theme/prompt" class="stack">
+      <label>Generate from prompt
+        <textarea name="themePrompt" rows="2" placeholder="Example: airy botanical spa theme with swiss cheese plant energy"></textarea>
+      </label>
+      <button class="btn" type="submit">Generate + Apply</button>
+    </form>
+  </article>
+</section>
+
+<section class="container section admin-grid">
+  <article class="card">
+    <h2>Add Availability Slot</h2>
+    <form method="post" action="/admin/slots" class="stack">
+      <label>Label <input name="label" placeholder="Morning Silk Press" /></label>
+      <label>Start <input name="startAt" type="datetime-local" required /></label>
+      <label>End <input name="endAt" type="datetime-local" required /></label>
+      <label>Max bookings <input name="maxBookings" type="number" min="1" value="1" /></label>
+      <button class="btn">Save Slot</button>
+    </form>
+  </article>
+
+  <article class="card">
+    <h2>Add Service</h2>
+    <form method="post" action="/admin/services" class="stack">
+      <label>Name <input name="name" required /></label>
+      <label>Description <textarea name="description" rows="2"></textarea></label>
+      <label>Duration (minutes) <input type="number" name="durationMinutes" value="60" /></label>
+      <label>Price (USD) <input type="number" step="0.01" name="priceDollars" value="0.00" /></label>
+      <button class="btn">Save Service</button>
+    </form>
+  </article>
+
+  <article class="card">
+    <h2>Portfolio Feed</h2>
+    <form method="post" action="/admin/gallery/upload" enctype="multipart/form-data" class="stack">
+      <label>Title <input name="title" /></label>
+      <label>Image <input type="file" accept="image/*" name="image" required /></label>
+      <button class="btn">Upload Local Image</button>
+    </form>
+    <hr />
+    <form method="post" action="/admin/gallery/instagram" class="stack">
+      <label>Add one Instagram post to queue
+        <input type="url" name="imageUrl" placeholder="https://www.instagram.com/p/.../" required />
+      </label>
+      <label>Caption hint <input name="title" /></label>
+      <button class="btn-inline">Queue Single Post</button>
+    </form>
+    <hr />
+    <form method="post" action="/admin/instagram-queue/add-bulk" class="stack">
+      <label>Bulk queue Instagram post URLs (one per line)
+        <textarea name="queueUrls" rows="4" placeholder="https://www.instagram.com/p/.../
+https://www.instagram.com/p/.../"></textarea>
+      </label>
+      <button class="btn-inline">Queue in Bulk</button>
+    </form>
+  </article>
+
+  <article class="card">
+    <h2>Publish Blog Post</h2>
+    <form method="post" action="/admin/posts" enctype="multipart/form-data" class="stack">
+      <label>Title <input name="title" required /></label>
+      <label>Body <textarea name="body" rows="5" required></textarea></label>
+      <label>Optional image <input type="file" accept="image/*" name="image" /></label>
+      <button class="btn">Publish</button>
+    </form>
+  </article>
+</section>
+
+<section class="container section">
+  <article class="card">
+    <h2>Instagram Queue → Website Feed</h2>
+    <p>Optional flow: when Nina posts to Instagram, paste URL(s) above, then select which queued posts to publish into site gallery.</p>
+    <form method="post" action="/admin/instagram-queue/publish" class="stack">
+      <div class="queue-list">
+        <% instagramQueue.forEach((item) => { %>
+          <label class="queue-item">
+            <input type="checkbox" name="queueIds" value="<%= item.id %>" <%= item.status === 'published' ? 'disabled' : '' %> />
+            <span>
+              <strong><%= item.shortcode || 'post' %></strong>
+              <small><%= item.post_url %></small>
+            </span>
+            <em class="queue-status <%= item.status %>"><%= item.status %></em>
+          </label>
+        <% }) %>
+      </div>
+      <button class="btn" type="submit">Publish Selected to Website Feed</button>
+    </form>
+  </article>
+</section>
+
+<section class="container section">
+  <h2>Recent Bookings</h2>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Client</th><th>Contact</th><th>Slot</th><th>Status</th><th>Notes</th></tr></thead>
+      <tbody>
+      <% bookings.forEach((booking) => { %>
+        <tr>
+          <td><%= booking.name %></td>
+          <td><%= booking.phone || booking.email %></td>
+          <td><%= new Date(booking.start_at).toLocaleString() %></td>
+          <td><%= booking.status %></td>
+          <td><%= booking.custom_notes || '' %></td>
+        </tr>
+      <% }) %>
+      </tbody>
+    </table>
+  </div>
+</section>
+<%- include('partials/foot') %>

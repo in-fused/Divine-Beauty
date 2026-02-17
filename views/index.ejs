@@ -1,0 +1,93 @@
+<%- include('partials/head', { title: 'Divine Beauty by Nina | Luxury Hair Experience' }) %>
+
+<section class="hero-content container">
+  <h1>Immersive Hair Artistry. Elevated Confidence.</h1>
+  <p>Nina delivers tailored, luxury results in a serene suite experience. Book in seconds from your phone.</p>
+  <a class="btn" href="#availability">Book a Time Block</a>
+</section>
+
+<% if (errors.length) { %>
+<section class="container errors">
+  <% errors.forEach((e) => { %><p><%= e %></p><% }) %>
+</section>
+<% } %>
+
+<section id="services" class="container section">
+  <h2>Signature Services</h2>
+  <div class="grid services">
+    <% services.forEach((service) => { %>
+      <article class="card">
+        <h3><%= service.name %></h3>
+        <p><%= service.description %></p>
+        <small><%= service.duration_minutes %> min · $<%= (service.price_cents / 100).toFixed(2) %></small>
+      </article>
+    <% }) %>
+  </div>
+</section>
+
+<section id="availability" class="container section">
+  <h2>Availability Calendar Blocks</h2>
+  <p class="section-intro">Tap any available block to expand, choose services, and instantly confirm your appointment.</p>
+  <div class="slots-wrap">
+    <% slots.forEach((slot) => { const full = slot.booking_count >= slot.max_bookings; %>
+      <article class="slot-card <%= full ? 'slot-full' : 'slot-open' %>" data-slot-card>
+        <button type="button" class="slot-head" data-slot-toggle>
+          <div>
+            <h3><%= slot.label || 'Open Session' %></h3>
+            <p><%= new Date(slot.start_at).toLocaleString() %> - <%= new Date(slot.end_at).toLocaleTimeString() %></p>
+          </div>
+          <span class="pill <%= full ? 'pill-full' : 'pill-open' %>"><%= full ? 'Booked' : 'Tap to book' %></span>
+        </button>
+
+        <% if (!full) { %>
+        <form class="slot-form" action="/bookings" method="post">
+          <input type="hidden" name="slotId" value="<%= slot.id %>" />
+          <label>Name <input name="name" required /></label>
+          <label>Phone <input name="phone" inputmode="tel" data-customer-phone /></label>
+          <label>Email <input name="email" type="email" data-customer-email /></label>
+          <label>Notes <textarea name="customNotes" rows="2" placeholder="Style goals, inspiration, requests"></textarea></label>
+          <fieldset>
+            <legend>Select services for this slot</legend>
+            <% services.forEach((service) => { %>
+              <label class="check"><input type="checkbox" name="services" value="<%= service.id %>" /> <%= service.name %></label>
+            <% }) %>
+          </fieldset>
+          <button class="btn" type="submit">Confirm Appointment</button>
+        </form>
+        <% } %>
+      </article>
+    <% }) %>
+  </div>
+</section>
+
+<section id="gallery" class="container section">
+  <h2>Portfolio Highlights</h2>
+  <div class="gallery-grid">
+    <% gallery.forEach((item) => { %>
+      <figure class="gallery-item">
+        <% if (item.source === 'instagram' && /instagram\.com\/p\//.test(item.image_url)) { %>
+          <blockquote class="instagram-media" data-instgrm-permalink="<%= item.image_url %>" data-instgrm-version="14"></blockquote>
+        <% } else { %>
+          <img loading="lazy" src="<%= item.image_url %>" alt="<%= item.title || 'Divine Beauty hairstyle result' %>" />
+        <% } %>
+        <figcaption><%= item.title %></figcaption>
+      </figure>
+    <% }) %>
+  </div>
+</section>
+
+<section id="blog" class="container section">
+  <h2>From Nina's Chair</h2>
+  <div class="grid blog-grid">
+    <% posts.forEach((post) => { %>
+      <article class="card">
+        <% if (post.image_url) { %><img src="<%= post.image_url %>" alt="<%= post.title %>" /><% } %>
+        <h3><%= post.title %></h3>
+        <p><%= post.body.slice(0, 150) %>...</p>
+        <a class="btn-inline" href="/blog/<%= post.id %>">Read + Comment</a>
+      </article>
+    <% }) %>
+  </div>
+</section>
+
+<%- include('partials/foot') %>
